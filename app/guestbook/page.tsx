@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,33 @@ import { Label } from "@/components/ui/label";
 import { RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Form } from "../components/Form";
+import prisma from "../lib/db";
+import { Suspense } from "react";
+import {
+  GuestBookFormLoading,
+  LoadingMessages,
+} from "../components/LoadingState";
+
+async function getGuestBookEntry() {
+  const data = await prisma.guestBookEntry.findMany({
+    select: {
+      User: {
+        select: {
+          firstname: true,
+          profileimage: true,
+        },
+      },
+      message: true,
+      id: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 30,
+  });
+
+  return data;
+}
 
 export default function GuestBookPage() {
   return (
@@ -15,11 +43,41 @@ export default function GuestBookPage() {
       <Card className="mt-10">
         <CardHeader className="flex flex-col w-full">
           <Label className="mb-1">Message</Label>
-          <GuestBookForm />
+          <Suspense fallback={<GuestBookFormLoading />}>
+            <GuestBookForm />
+          </Suspense>
+
+          <ul className="pt-7 gap-y-5 flex flex-col">
+            <Suspense fallback={<LoadingMessages />}>
+              <GuestBookEntries />
+            </Suspense>
+          </ul>
         </CardHeader>
       </Card>
     </section>
   );
+}
+
+async function GuestBookEntries() {
+  const data = await getGuestBookEntry();
+
+  if (data.length === 0) return null;
+
+  return data.map((item) => (
+    <li key={item.id}>
+      <div className="flex items-center">
+        <img
+          src={item.User?.profileimage as string}
+          alt="User Profile Image"
+          className="h-8 w-8 rounded-lg"
+        />
+        <p className="text-muted-foreground break-words pl-3">
+          {item.User?.firstname}:{" "}
+          <span className="text-foreground">{item.message}</span>
+        </p>
+      </div>
+    </li>
+  ));
 }
 
 async function GuestBookForm() {
