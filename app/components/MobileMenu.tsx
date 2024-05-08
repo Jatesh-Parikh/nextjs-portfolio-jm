@@ -11,11 +11,18 @@ import { navigationItems } from "./Navbar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function MobileMenu() {
   const location = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location]);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={(state) => setOpen(state)}>
       <SheetTrigger asChild>
         <Button variant={"outline"} size={"icon"}>
           <Menu className="h-4 w-4" />
