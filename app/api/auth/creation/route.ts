@@ -30,5 +30,7 @@ export async function GET() {
     });
   }
 
-  return NextResponse.redirect("http://localhost:3000/guestbook");
+  return NextResponse.redirect(
+    "https://nextjs-portfolio-jm.vercel.app/guestbook"
+  );
 }
