@@ -12,8 +12,10 @@ import {
   GuestBookFormLoading,
   LoadingMessages,
 } from "../components/LoadingState";
+import { unstable_noStore as noStore } from "next/cache";
 
 async function getGuestBookEntry() {
+  noStore();
   const data = await prisma.guestBookEntry.findMany({
     select: {
       User: {
